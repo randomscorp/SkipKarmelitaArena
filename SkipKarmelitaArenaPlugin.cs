@@ -67,12 +67,12 @@ namespace SkipKarmelitaArena
         }
 
         [HarmonyPatch(typeof(PlayMakerFSM), nameof(PlayMakerFSM.OnEnable))]
-        [HarmonyPostfix]
+        [HarmonyPrefix]
         private static void PatchFsmArenas(PlayMakerFSM __instance)
         {
             //Patch Karmelita
-            if (SkipKarmelitaArenaPlugin.skipKarmelitaArena.Value && 
-                __instance.FsmName == "Control" && 
+            if (SkipKarmelitaArenaPlugin.skipKarmelitaArena.Value &&
+                __instance.FsmName == "Control" &&
                 __instance.gameObject.name == "Hunter Queen Boss")
             {
                 var state = __instance.FsmStates.First(state => state.name == "Battle Dance");
@@ -80,7 +80,9 @@ namespace SkipKarmelitaArena
                 state.Actions = state.Actions.AddToArray<FsmStateAction>(new CustomFSMAction(() =>
                 {
                     __instance.SendEvent("BATTLE END");
+
                 }));
+                state.Actions.First(action => action.GetType() == typeof(Wait)).Enabled = false;
             }
             //Patch Unraveled
             else if (SkipKarmelitaArenaPlugin.skipUnravelledArena.Value &&
@@ -96,7 +98,47 @@ namespace SkipKarmelitaArena
                     __instance.SetState("P3 Shake");
                     })
                 };
+
+                __instance.FsmStates.First(state => state.name == "Boss Title").Actions.First(action => action.GetType() == typeof(Wait)).Enabled = false;
+                __instance.FsmStates.First(state => state.name == "Arena Start").Actions.First(action => action.GetType() == typeof(Wait)).Enabled = false;
+                __instance.FsmStates.First(state => state.name == "Encountered Pause").Actions.First(action => action.GetType() == typeof(Wait)).Enabled = false;
+                __instance.FsmStates.First(state => state.name == "Encountered Start").Actions.First(action => action.GetType() == typeof(Wait)).Enabled = false;
             }
+            //skip groal slowmo
+            else if (skipGroalArena.Value &&
+                __instance.gameObject.scene.name == "Shadow_18" &&
+                __instance.FsmName == "Control" &&
+                __instance.gameObject.name == "Swamp Shaman")
+            {
+                __instance.gameObject.LocateMyFSM("Control").FsmStates.First(state => state.name == "Fake Battle End").
+                    Actions =  [new CustomFSMAction(() => __instance.SendEvent("FINISHED"))];
+
+            }
+            //skip crawfather repeat loop
+            else if (SkipKarmelitaArenaPlugin.skipCrawFatherArena.Value && __instance.gameObject.scene.name == "Room_CrowCourt_02")
+            {
+                if (__instance.FsmName == "Control" &&
+                    __instance.gameObject.name == "Crawfather")
+                {
+                    __instance.FsmStates.First(state => state.name == "Emerge Announce").Actions = [new CustomFSMAction(() =>
+                    {
+                        __instance.SendEvent("FINISHED");
+                    })];
+                }
+                
+                else if (__instance.FsmName == "Battle Start" &&
+                    __instance.gameObject.name == "Battle Start")
+                {
+                    __instance.FsmStates.First(state => state.name == "Crowd Roar").Actions = [new CustomFSMAction(() =>
+                    {
+                        __instance.SetState("Battle Start");
+                    })];
+
+                    __instance.FsmStates.First(state => state.name == "Lights Up").Actions.First(action => action.GetType() == typeof(Wait)).Enabled=false;
+                }
+
+            }
+
         }
         [HarmonyPatch(typeof(BattleScene), nameof(BattleScene.Awake))]
         [HarmonyPrefix]
@@ -107,7 +149,6 @@ namespace SkipKarmelitaArena
                 (__instance.gameObject.scene.name == "Shadow_18" && skipGroalArena.Value)||
                 (__instance.gameObject.scene.name == "Slab_16b" && skipBroodingMotherArena.Value ))
             {
-                __instance.noEndSlomo = true;
                 __instance.waves = new List<BattleWave> { __instance.waves[__instance.waves.Count()-1] };
             }
         }
