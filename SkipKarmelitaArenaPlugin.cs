@@ -16,7 +16,7 @@ using UnityEngine;
 namespace SkipKarmelitaArena
 {
     [HarmonyPatch]
-    [BepInPlugin("io.github.randomscorp.skipkarmelitaarena", "Skip Karmelita Arena", "1.1")]
+    [BepInPlugin("io.github.randomscorp.skipkarmelitaarena", "Skip Karmelita Arena", "1.2.0")]
     public partial class SkipKarmelitaArenaPlugin : BaseUnityPlugin
     {
         public static ConfigEntry<bool> skipKarmelitaArena;
@@ -26,7 +26,7 @@ namespace SkipKarmelitaArena
         public static ConfigEntry<bool> skipChefLugoliArena;
         public static ConfigEntry<bool> skipGroalArena;
         public static ManualLogSource logger;
-        private Harmony harmony = new("io.github.skipkarmelitaarena");
+        private Harmony harmony = new("io.github.randomscorp.skipkarmelitaarena");
 
         private void Awake()
         {
